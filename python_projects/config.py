@@ -1,0 +1,1 @@
+TOKEN = 'telegram token'
