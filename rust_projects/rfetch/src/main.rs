@@ -89,7 +89,7 @@ fn main() {
 
     let distrib_output = Command::new("sh")
                     .arg("-c")
-                    .arg("cat /etc/*-release | head -n1 | awk '{print $1,$2}'")
+                    .arg("hostnamectl | grep 'Operating System' | awk '{print $3, $4}'")
                     .stdout(Stdio::piped())
                     .output()
                     .unwrap();
@@ -98,7 +98,7 @@ fn main() {
     let distrib_len = distrib_stdout.len();
     distrib_stdout.truncate(distrib_len - 1);
 
-    let init_output = Command::new("sh")
+    /*let init_output = Command::new("sh")
                     .arg("-c")
                     .arg("ps -p 1 | grep '1' | awk '{print $4}'")
                     .stdout(Stdio::piped())
@@ -108,16 +108,15 @@ fn main() {
     let mut init_stdout = String::from_utf8(init_output.stdout).unwrap();
     let init_len = init_stdout.len();
     init_stdout.truncate(init_len - 1);
+    */
 
     println!("");
-    println!("{} ### ### ### # #  {}@{}", "█▌".black(), user_stdout, host_stdout);
-    println!("{} # # # # #   # #", "█▌".white());
-    println!("{} # # # # #   # #  OS:         {}", "█▌".red(), distrib_stdout);
-    println!("{} # # # # #   # #  KERNEL:     {}", "█▌".blue(), kernel_stdout);
-    println!("{} ### ##  #   ###  UPTIME:     {}", "█▌".green(), uptime_stdout);
-    println!("{} # # # # #   # #  INIT:       {}", "█▌".yellow(), init_stdout);
-    println!("{} # # # # #   # #  PACKAGES:   {}", "█▌".magenta(), pacman_stdout);
-    println!("{} # # # # #   # #  SHELL:      {}", "█▌".cyan(), shell_stdout);
-    println!("{} # # # # ### # #  DE:         {}", "█▌".bright_blue(), de_stdout);
+    println!("{}                {}@{}", "●".white(), user_stdout, host_stdout);
+    println!("{}  ████████████  OS:         {}", "●".red(), distrib_stdout);
+    println!("{}  █          █  KERNEL:     {}", "●".blue(), kernel_stdout);
+    println!("{}  █          █  UPTIME:     {}", "●".green(), uptime_stdout);
+    println!("{}  █          █  PACKAGES:   {}", "●".magenta(), pacman_stdout);
+    println!("{}  █▄        ▄█  SHELL:      {}", "●".cyan(), shell_stdout);
+    println!("{}   ▀████████▀   DE:         {}", "●".bright_blue(), de_stdout);
     println!("");
 }
