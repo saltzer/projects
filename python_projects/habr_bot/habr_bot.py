@@ -2,10 +2,7 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from aiohttp.client import request
 from config import TOKEN
-from random import randint
-import requests
 from bs4 import BeautifulSoup, SoupStrainer
 import urllib.request
 from datetime import datetime
