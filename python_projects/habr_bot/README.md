@@ -3,3 +3,7 @@
 ### logging of actions and excluding other users by chat_id
 
 ![](https://github.com/saltzer/projects/blob/main/python_projects/habr_bot/image.png)
+
+![](https://github.com/saltzer/projects/blob/main/python_projects/habr_bot/command.png)
+
+![](https://github.com/saltzer/projects/blob/main/python_projects/habr_bot/help.png)
