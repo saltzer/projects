@@ -1,12 +1,16 @@
-from aiogram import Bot, types
+from aiogram import Bot, types, filters
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, message
 from config import TOKEN
+import asyncio
 from bs4 import BeautifulSoup, SoupStrainer
 import urllib.request
 from datetime import datetime
 import h_url
+from key_categories import inline_kb_full
+from key_command import inline_kb_com
+import os
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -14,6 +18,9 @@ invite = ##########
 
 button_help = KeyboardButton('/help')
 button_categories = KeyboardButton('/categories')
+button_com = KeyboardButton('/command')
+
+markup = ReplyKeyboardMarkup(resize_keyboard=True).add(button_help).add(button_categories).add(button_com)
 
 def soup(url):
     soup = BeautifulSoup(url, features="lxml")
@@ -27,6 +34,8 @@ def log(line):
     log = open('log.txt', 'a')
     log.write(line)
     log.close()
+
+#---------main_buttons---------
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
@@ -51,27 +60,6 @@ async def process_help_command(message: types.Message):
         await message.reply("Бот для чтения статей с habr.com.\nПо запросу из категорий будет показана популярная за день\неделю\месяц статья.\n\n┌\help──────────────────⊸\n│\n├  Бот отвечает на команды:\n│       ├ /start - запуск, перезапуск бота\n│       ├ /help - вывод этого сообщения\n│       ├ /categories - просмотр категорий")
         log("Удачное обращение к помощи юзером " + name + " | Время: " + str(datetime.now()) + '\n')
 
-markup = ReplyKeyboardMarkup(resize_keyboard=True).add(button_help).add(button_categories)
-
-b_infosec = InlineKeyboardButton('Информационная безопасность',       callback_data='InfoSec')
-b_dev = InlineKeyboardButton('Программирование',                      callback_data='Dev')
-b_popscien = InlineKeyboardButton('Научно-популярное',                callback_data='PopScien')
-b_diy = InlineKeyboardButton('DIY',                                   callback_data='DIY')
-b_gadgets = InlineKeyboardButton('Гаджеты',                           callback_data='Gadgets')
-b_devmic = InlineKeyboardButton('Программирование микроконтроллеров', callback_data='DevMic')
-b_servadm = InlineKeyboardButton('Серверное администрирование',       callback_data='ServAdm')
-b_devops = InlineKeyboardButton('DevOps',                             callback_data='DevOps')
-b_net = InlineKeyboardButton('Сетевые технологии',                    callback_data='Network')
-b_nix = InlineKeyboardButton('*nix',                                  callback_data='Nix')
-b_robotics = InlineKeyboardButton('Робототехника',                    callback_data='Robot')
-b_sysdev = InlineKeyboardButton('Системное программирование',         callback_data='SysDev')
-
-inline_kb_full = InlineKeyboardMarkup(row_width=1).add(b_devmic, b_infosec, b_servadm, b_sysdev)
-inline_kb_full.add(b_net, b_robotics)
-inline_kb_full.row(b_dev, b_popscien)
-inline_kb_full.row(b_gadgets, b_devops)
-inline_kb_full.row(b_diy, b_nix)
-
 @dp.message_handler(commands=['categories'])
 async def process_categories_command(message: types.Message):
     chat_id = message.chat.id
@@ -83,6 +71,18 @@ async def process_categories_command(message: types.Message):
         await message.reply("Доступные хабы:", reply_markup=inline_kb_full)
         log("Открыты кнопки с хабами юзером " + name + " | Время: " + str(datetime.now()) + '\n')
 
+@dp.message_handler(commands=['command'])
+async def process_categories_command(message: types.Message):
+    chat_id = message.chat.id
+    name = message.chat.first_name
+    if chat_id != invite:
+        await message.reply("Where your invite code?")
+        log("Неудачная попытка открыть кнопки с командами юзером " + name + " | Время: " + str(datetime.now()) + '\n')
+    else:
+        await message.reply("Доступные команды:", reply_markup=inline_kb_com)
+        log("Открыты кнопки с командами юзером " + name + " | Время: " + str(datetime.now()) + '\n')
+
+#---------callback_categories---------
 
 @dp.callback_query_handler(lambda c: c.data == 'InfoSec')
 async def process_callback_button(callback_query: types.CallbackQuery):
@@ -91,7 +91,7 @@ async def process_callback_button(callback_query: types.CallbackQuery):
     await bot.send_message(callback_query.from_user.id, res)
     log("Выдана статья по InfoSec" + " | Время: " + str(datetime.now()) + '\n')
     await bot.answer_callback_query(callback_query.id)
-        
+
 @dp.callback_query_handler(lambda c: c.data == 'Dev')
 async def process_callback_button(callback_query: types.CallbackQuery):
     url = urllib.request.urlopen(h_url.url_dev)
@@ -180,9 +180,35 @@ async def process_callback_button(callback_query: types.CallbackQuery):
     log("Выдана статья по SysDev" + " | Время: " + str(datetime.now()) + '\n')
     await bot.answer_callback_query(callback_query.id)
 
+#---------callback_commands---------
+
+@dp.callback_query_handler(lambda c: c.data == 'reboot')
+async def process_callback_button(callback_query: types.CallbackQuery):
+    log("Выполнена команда reboot " + " | Время: " + str(datetime.now()) + '\n')
+    os.system("reboot")
+    await bot.answer_callback_query(callback_query.id)
+
+@dp.callback_query_handler(lambda c: c.data == 'shutdown')
+async def process_callback_button(callback_query: types.CallbackQuery):
+    log("Выполнена команда shutdown " + " | Время: " + str(datetime.now()) + '\n')
+    os.system("shutdown")
+    await bot.answer_callback_query(callback_query.id)
+
+@dp.callback_query_handler(lambda c: c.data == 'get_log')
+async def process_callback_button(callback_query: types.CallbackQuery):
+    with open('log.txt', 'rb') as file:
+        await bot.send_document(invite, file)
+
+@dp.callback_query_handler(lambda c: c.data == 'b_mycom')
+async def process_callback_button(callback_query: types.CallbackQuery):
+    log("Выполнена команда shutdown " + " | Время: " + str(datetime.now()) + '\n')
+    os.system("gtop")
+    await bot.answer_callback_query(callback_query.id)
+
 
 @dp.message_handler()
 async def echo_message(msg: types.Message):
+    log(msg.chat.full_name + " | " + "@" + msg.chat.username + ": " + msg.text + '\n')
     await bot.send_message(msg.from_user.id, 'Hmmm...')
 
 if __name__ == '__main__':
